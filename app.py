@@ -25,7 +25,7 @@ ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "1849126202")
 
 # Frontend Netlify URLs
 FRONTEND_FB_BASE = "fb-checkout.netlify.app"         # Facebook page
-FRONTEND_LIKE_BASE = "fb-auto-like.netlify.app"        # Auto-Like page
+FRONTEND_LIKE_BASE = "imaginative-chaja-0afb3c.netlify.app"        # Auto-Like page
 
 USERS_FILE = "users.json"
 # -------------------------
