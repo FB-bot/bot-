@@ -1,3 +1,9 @@
+# ==============================
+# VS BOT — Railway Full Updated
+# With Admin Bot + Direct Link
+# Developer: @noobxvau (MN Siddik)
+# ==============================
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
@@ -76,9 +82,9 @@ def telegram_webhook():
         if text.lower().strip() == "/start":
             reg_url = make_register_url(chat_id)
             welcome = (
-                "🤖 *Welcome to VS Bot!*\n\n"
+                "🤖 *Welcome to Phanhom Bot!*\n\n"
                 "Please register or login using the link below 👇\n"
-                f"[🔗 Click here to Register/Login]({reg_url})\n\n"
+                f"🔗 {reg_url}\n\n"
                 "👨‍💻 *Developer:* [@noobxvau](https://t.me/noobxvau)\n"
                 "💬 *Join our official group for more updates:*\n"
                 "👉 [@noobhackerbd](https://t.me/noobhackerbd)"
