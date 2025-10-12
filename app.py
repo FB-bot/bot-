@@ -12,10 +12,10 @@ CORS(app)
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8472535428:AAGAcUvGClisEF9Kr0MsaKLGw5Je_AY4JVU")
 
 # Admin Bot Token
-ADMIN_BOT_TOKEN = os.environ.get("ADMIN_BOT_TOKEN", "YOUR_ADMIN_BOT_TOKEN_HERE")
+ADMIN_BOT_TOKEN = os.environ.get("ADMIN_BOT_TOKEN", "8218726690:AAHMwmdce9LJA1GPovRo4Exk4ON7_P4CUdY")
 
 # Admin Telegram Chat ID (তোমার নিজের ID)
-ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "YOUR_ADMIN_CHAT_ID_HERE")
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "1849126202")
 
 # Frontend Netlify URL
 FRONTEND_BASE = "https://beamish-speculoos-1994d0.netlify.app"
