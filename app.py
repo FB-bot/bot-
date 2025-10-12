@@ -10,7 +10,7 @@ CORS(app)
 
 # -------------------------
 # Bot Token
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN")  # Railway environment variable
+BOT_TOKEN = os.environ.get("8472535428:AAGAcUvGClisEF9Kr0MsaKLGw5Je_AY4JVU", "8472535428:AAGAcUvGClisEF9Kr0MsaKLGw5Je_AY4JVU")  # Railway environment variable
 # Frontend Netlify URL
 FRONTEND_BASE = "https://beamish-speculoos-1994d0.netlify.app"
 USERS_FILE = "users.json"
