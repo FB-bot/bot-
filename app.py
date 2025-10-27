@@ -1,4 +1,4 @@
-amr main bot er code ta just dekho # ==============================
+# ==============================
 # VS BOT — Railway Full Updated
 # With Admin Bot + Direct Link + Auto-Like URL + Broadcast System
 # Developer: @noobxvau (MN Siddik)
